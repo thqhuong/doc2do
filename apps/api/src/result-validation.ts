@@ -64,11 +64,41 @@ function assertWarningReferences(result: Doc2DoResult): void {
   }
 }
 
+const explicitCalendarDatePattern = /(?:\b\d{4}-\d{1,2}-\d{1,2}\b|\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b)/;
+const vietnamContextPattern = /(?:việt nam|vietnam)/i;
+
+function assertExplicitVietnamDeadlineConsistency(result: Doc2DoResult): void {
+  const sourceById = new Map(result.source_refs.map((source) => [source.id, source.snippet]));
+  const hasVietnamContext = [
+    result.document.issuer ?? "",
+    result.document.summary,
+    ...result.document.audience,
+    ...result.source_refs.map((source) => source.snippet),
+  ].some((value) => vietnamContextPattern.test(value));
+
+  if (!hasVietnamContext) return;
+
+  for (const [index, deadline] of result.deadlines.entries()) {
+    if (deadline.date_time_iso !== null) continue;
+    const citedText = deadline.source_refs
+      .map((sourceId) => sourceById.get(sourceId) ?? "")
+      .join(" ");
+    if (!explicitCalendarDatePattern.test(citedText)) continue;
+
+    throw new z.ZodError([{
+      code: "custom",
+      path: ["deadlines", index, "date_time_iso"],
+      message: "A cited Vietnamese source contains an explicit calendar date. Preserve it as a +07:00 reviewable inference when the timezone is omitted.",
+    }]);
+  }
+}
+
 /** Strictly validates model data, then removes links that could target local/private systems. */
 export function validateAndSanitizeResult(value: unknown): Doc2DoResult {
   const result = doc2DoResultSchema.parse(value);
   assertUniqueIds(result);
   assertWarningReferences(result);
+  assertExplicitVietnamDeadlineConsistency(result);
   return {
     ...result,
     actions: result.actions.map((action) => ({
