@@ -303,7 +303,7 @@ function Header({ onReset, hasResult }: { onReset: () => void; hasResult: boolea
       </button>
       <div className="header-actions">
         {hasResult && <button className="text-button" onClick={onReset}>New document</button>}
-        <span className="privacy-pill"><Icon name="lock" /> Files stay private</span>
+        <span className="privacy-pill"><Icon name="lock" /> Files aren't stored</span>
       </div>
     </header>
   );
@@ -425,6 +425,14 @@ function Landing(props: LandingProps) {
                 rows={3}
                 maxLength={500}
               />
+            </div>
+
+            <div className="data-use-note">
+              <Icon name="lock" />
+              <p>
+                <strong>Doc2Do does not store your document.</strong> Gemini Free Tier processes it, so do not
+                upload sensitive, confidential, or personal information. <a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noreferrer">Review Gemini data terms</a>.
+              </p>
             </div>
 
             {error && <div className="error-banner" role="alert"><Icon name="warning" /><span><strong>We need one small fix</strong>{error}</span></div>}
