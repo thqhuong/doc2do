@@ -42,6 +42,25 @@ function corsMiddleware(config: AppConfig) {
   });
 }
 
+function trustedAnalysisOrigin(config: AppConfig) {
+  return (request: Request, _response: Response, next: NextFunction) => {
+    const origin = request.get("origin");
+    const fetchSite = request.get("sec-fetch-site");
+    const explicitlyAllowed = Boolean(origin && config.corsOrigins.includes(origin));
+    const host = request.get("host");
+    const requestOrigin = host ? `${request.protocol}://${host}` : null;
+    const sameOrigin = Boolean(origin && requestOrigin && origin === requestOrigin);
+
+    if (fetchSite === "cross-site" && !explicitlyAllowed) {
+      return next(new ApiError(403, "CROSS_SITE_REQUEST_BLOCKED", "Cross-site analysis requests are not allowed."));
+    }
+    if (origin && !sameOrigin && !explicitlyAllowed) {
+      return next(new ApiError(403, "ORIGIN_NOT_ALLOWED", "This origin is not allowed."));
+    }
+    return next();
+  };
+}
+
 export function createApp(config: AppConfig) {
   const app = express();
   app.disable("x-powered-by");
@@ -72,6 +91,7 @@ export function createApp(config: AppConfig) {
   });
   app.post(
     "/api/v1/analyses",
+    trustedAnalysisOrigin(config),
     analysisLimiter,
     uploadDocument.single("document"),
     async (request, response) => {
