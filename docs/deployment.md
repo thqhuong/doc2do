@@ -86,7 +86,7 @@ gcloud builds submit --config cloudbuild.yaml .
 - request-based billing (`--cpu-throttling`);
 - minimum instances `0`, service maximum `2`, and per-revision maximum `2`;
 - 1 vCPU and 512 MiB memory;
-- concurrency `20` and timeout `60s`;
+- concurrency `20` and timeout `180s` so files within the advertised 10 MB limit have time to finish;
 - public unauthenticated access to the web app;
 - Gemini key mounted from Secret Manager.
 

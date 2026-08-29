@@ -51,7 +51,7 @@ If the live model is temporarily unavailable, the one-click path falls back to a
 - Keep the clearly labeled deterministic fallback available for local development and model outages.
 - Warm the service with a health request before presenting; do not keep a minimum instance running afterward.
 - Prepare a second supported file and one unsupported file to demonstrate success and recoverable failure.
-- Record at readable zoom and keep network-dependent steps under the 60-second Cloud Run timeout.
+- Record at readable zoom. The service allows up to 180 seconds for larger documents, but use the fictional sample for a faster, repeatable demo.
 
 ## Release acceptance
 
