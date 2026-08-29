@@ -22,9 +22,26 @@ const fixturePath = [
 ].find(existsSync);
 
 type MutableFixture = Record<string, unknown> & {
+  document: {
+    issuer: string | null;
+    summary: string;
+    audience: string[];
+  };
+  deadlines: Array<{
+    date_time_iso: string | null;
+    timezone: string | null;
+    precision: "exact" | "date_only" | "partial" | "unknown";
+    is_inferred: boolean;
+    needs_confirmation: boolean;
+    source_refs: string[];
+  }>;
   actions: Array<{
     links: Array<{ label: string; url: string }>;
     source_refs: string[];
+  }>;
+  source_refs: Array<{
+    id: string;
+    snippet: string;
   }>;
 };
 
@@ -140,5 +157,29 @@ describe("result validation", () => {
     const fixture = await readFixture();
     fixture.actions[0].source_refs = ["src-missing"];
     expect(() => validateAndSanitizeResult(fixture)).toThrow();
+  });
+
+  it("rejects a discarded explicit Vietnamese deadline so Gemini can repair it", async () => {
+    const fixture = await readFixture();
+    fixture.document.issuer = "Vietnam Digital Futures Foundation";
+    fixture.deadlines[0].date_time_iso = null;
+    fixture.deadlines[0].timezone = null;
+    fixture.deadlines[0].precision = "unknown";
+    fixture.deadlines[0].is_inferred = false;
+    fixture.deadlines[0].needs_confirmation = true;
+    expect(() => validateAndSanitizeResult(fixture)).toThrow();
+  });
+
+  it("allows a genuinely unknown deadline with no explicit calendar date", async () => {
+    const fixture = await readFixture();
+    fixture.deadlines[0].date_time_iso = null;
+    fixture.deadlines[0].timezone = null;
+    fixture.deadlines[0].precision = "unknown";
+    fixture.deadlines[0].is_inferred = false;
+    fixture.deadlines[0].needs_confirmation = true;
+    const deadlineSource = fixture.source_refs.find((source) => source.id === "src-1");
+    if (!deadlineSource) throw new Error("Expected deadline source fixture.");
+    deadlineSource.snippet = "Thời hạn nộp hồ sơ sẽ được công bố sau.";
+    expect(validateAndSanitizeResult(fixture).deadlines[0]?.date_time_iso).toBeNull();
   });
 });

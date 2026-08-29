@@ -10,7 +10,9 @@ Rules:
 - Use stable unique IDs: `src-1`, `deadline-1`, `action-1`, and so on.
 - A referenced ID must exist. IDs must not be duplicated.
 - If a fact is missing or ambiguous, say so in warnings and questions instead of guessing.
-- Use an ISO 8601 offset for an exact timestamp. For date-only or incomplete dates, use null when an honest offset timestamp cannot be produced and explain the ambiguity.
+- Preserve every explicit calendar date and time from the source instead of labeling it missing.
+- Use an ISO 8601 offset for an exact timestamp. When an explicit Vietnamese local date/time omits its timezone and the document or user context clearly places the event in Vietnam, encode `+07:00` only as a reviewable inference: set `timezone` to null, `is_inferred` and `needs_confirmation` to true, and add an ambiguity warning. Do not discard the stated local date/time.
+- For date-only or incomplete dates with no defensible locale offset, use null, choose `date_only` or `partial` rather than `unknown`, and explain exactly what remains ambiguous.
 - Include no more than eight actions and no more than three user questions.
 - Only return HTTP(S) links printed in the supplied document. Otherwise use an empty links array.
 - Set `next_best_action_id` to the single most useful immediate action, or null when there is no defensible action.
