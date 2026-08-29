@@ -9,6 +9,12 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - dependencies
+    ignore:
+      # Keep routine updates flowing without destabilizing the competition build.
+      # Major upgrades are reviewed deliberately after the submission window.
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: github-actions
     directory: /
@@ -19,6 +25,10 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - dependencies
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: docker
     directory: /
@@ -29,3 +39,7 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - dependencies
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
