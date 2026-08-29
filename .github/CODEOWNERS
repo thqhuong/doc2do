@@ -1,0 +1,5 @@
+# Require the repository owner to review application and supply-chain changes.
+* @thqhuong
+/.github/workflows/ @thqhuong
+/cloudbuild.yaml @thqhuong
+/Dockerfile @thqhuong

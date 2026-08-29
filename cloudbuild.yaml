@@ -1,12 +1,12 @@
 substitutions:
   _REGION: asia-southeast1
-  _REPOSITORY: doc2do
+  _REPOSITORY: cloud-run-source-deploy
   _SERVICE: doc2do
   _GEMINI_MODEL: gemini-3.6-flash
 
 steps:
   - id: build
-    name: gcr.io/cloud-builders/docker
+    name: gcr.io/cloud-builders/docker@sha256:d1797996867921778f1adbb7e493baaaf2f6b21e107599c0aab48c2ec06ff311
     args:
       - build
       - --tag
@@ -14,13 +14,13 @@ steps:
       - .
 
   - id: push
-    name: gcr.io/cloud-builders/docker
+    name: gcr.io/cloud-builders/docker@sha256:d1797996867921778f1adbb7e493baaaf2f6b21e107599c0aab48c2ec06ff311
     args:
       - push
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
 
   - id: deploy
-    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk@sha256:d4d7a9a1e3d824db170e56764d5bfe39d9f23924cd51505e0792d360cbed209c
     entrypoint: gcloud
     args:
       - run
@@ -40,7 +40,7 @@ steps:
       - --timeout=60s
       - --cpu-throttling
       - --set-env-vars=NODE_ENV=production,DOC2DO_DEMO_MODE=false,GEMINI_MODEL=${_GEMINI_MODEL}
-      - --set-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest
+      - --set-secrets=GEMINI_API_KEY=doc2do-gemini-api-key:latest
 
 images:
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
