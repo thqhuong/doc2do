@@ -55,6 +55,19 @@ Success: `201 Created` with `AnalysisResponse`.
 
 `mode` is `gemini` or `demo`. `result` follows `Doc2DoResult` below.
 
+Browser submissions are same-origin by default. A request with a foreign `Origin` or `Sec-Fetch-Site: cross-site` is rejected before upload parsing, rate-limiter consumption, or a Gemini call. Explicit development origins can be configured with `CORS_ORIGIN`.
+
+Security response: `403 Forbidden`.
+
+```json
+{
+  "error": {
+    "code": "CROSS_SITE_REQUEST_BLOCKED",
+    "message": "Cross-site analysis requests are not allowed."
+  }
+}
+```
+
 ## Error envelope
 
 Application-generated non-success responses use this shape:

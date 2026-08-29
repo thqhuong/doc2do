@@ -5,13 +5,15 @@ Doc2Do processes documents that may contain grades, identity details, applicatio
 ## MVP data lifecycle
 
 ```text
-upload -> memory -> Gemini/demo adapter -> validated result -> browser
-             \-> request ends -> raw bytes released from request memory
+upload -> memory -> Gemini/demo adapter -> validated result -> browser session
+             \-> request ends -> raw bytes released       \-> tab closes -> plan cleared
 ```
 
-The core MVP does not persist raw files or extracted text. Use synthetic documents for tests, screenshots, and demonstrations.
+The core MVP does not persist raw files or extracted text. It keeps the validated plan and checklist edits in the current tab's `sessionStorage` so a refresh is recoverable. Use synthetic documents for tests, screenshots, and demonstrations.
 
-## Controls required before public deployment
+The public demo currently uses Gemini Free Tier. Under Google's unpaid-service terms, submitted content and generated responses may be used to improve Google products and may be reviewed after being disconnected from account/project identifiers. The product therefore warns users not to upload sensitive, confidential, or personal information before submission.
+
+## Implemented public-demo controls
 
 ### Upload boundary
 
@@ -26,6 +28,7 @@ The core MVP does not persist raw files or extracted text. Use synthetic documen
 - Treat instructions inside a document as document content, not system instructions.
 - Ask Gemini for JSON matching the shared schema, then validate it server-side.
 - Retry invalid output at most once; return a recoverable error afterward.
+- Retry transient `429` and `500`-`504` transport failures at most twice after the first attempt.
 - Do not render model-produced HTML or Markdown as trusted markup.
 - Accept links only with `http` or `https`, and prefer links observed in the source.
 - Mark unsupported critical claims as inferred or needing confirmation.
@@ -39,10 +42,13 @@ The core MVP does not persist raw files or extracted text. Use synthetic documen
 
 ### Public endpoint boundary
 
-- Rate-limit by a privacy-preserving client signal and apply a small concurrent-analysis limit.
+- Reject browser submissions whose `Origin` or `Sec-Fetch-Site` is cross-site unless an origin is explicitly configured for development.
+- Rate-limit all requests to 120 per minute and analysis requests to 20 per 15 minutes per client address.
 - Reject oversized bodies before buffering them or calling Gemini.
-- Set Cloud Run maximum instances to limit both abuse and surprise cost.
+- Set both Cloud Run service and per-revision maximums to two instances.
 - Return generic upstream errors. Keep prompt text, file content, stack traces, and secrets out of responses.
+
+The analysis endpoint remains intentionally public for a no-sign-in competition demo. Direct non-browser clients can still consume the Free Tier quota; the rate limit and instance caps reduce this availability risk but do not provide user-level quotas.
 
 ## Logging
 
@@ -67,19 +73,26 @@ Before enabling saved history:
 
 The proposed rules and indexes are in `firebase/`; they are a starting point and are not active until deployed.
 
-## Calendar phase
+## Calendar handoff
 
-- Request the narrowest event-creation scope needed by the chosen OAuth flow.
-- Show title, time, timezone, reminders, and description before the write.
-- Require an explicit confirmation for each export.
-- Use an idempotency record so repeated clicks do not create duplicate events.
-- Do not store OAuth access or refresh tokens in Firestore.
+- Show title, time, timezone status, reminder choice, and description before handoff.
+- Open Google Calendar's pre-filled event editor only after the user clicks the explicit action.
+- Keep an `.ics` download as a provider-neutral fallback.
+- Do not request or store Google Calendar OAuth tokens in the MVP.
 
 ## Privacy copy for the MVP
 
 Use this plain-language notice near upload:
 
-> Doc2Do processes your document to create an action plan. The MVP does not intentionally save the original file. Avoid uploading government IDs, financial records, or other sensitive personal documents. Confirm important dates and requirements with the original source.
+> Doc2Do does not store your document. Gemini Free Tier processes it, so do not upload sensitive, confidential, or personal information.
+
+## Repository and release controls
+
+- GitHub Actions run with read-only repository permissions and immutable action SHAs.
+- CI runs lockfile installation, dependency audit, type checking, tests, production build, smoke test, and a Docker image build.
+- GitHub secret scanning, push protection, Dependabot security updates, and CodeQL default scanning are enabled.
+- Cloud Build builder images are pinned by digest and deploy through a scoped service identity.
+- The runtime service account can read only the named Gemini secret and receives no project-wide role.
 
 ## Incident response
 

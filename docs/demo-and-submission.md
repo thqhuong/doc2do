@@ -33,21 +33,22 @@ Expected plan:
 | Time | Action | Narration |
 |---|---|---|
 | 0:00 | Open the landing page | “Important opportunities are often available but still hard to act on.” |
-| 0:15 | Select **Try sample** and show context | “Doc2Do reads the document together with the user's situation.” |
-| 0:35 | Run analysis | “Gemini returns a structured result that the server validates before the UI sees it.” |
-| 0:55 | Reveal the plan | “This is an ordered action plan, not only a summary.” |
+| 0:15 | Select **Try the scholarship sample** | “This fictional Vietnamese notice is sent through the same live Gemini path as an upload.” |
+| 0:35 | Point out the processing stages | “Gemini returns structured JSON; the server rejects anything that fails the action-plan contract.” |
+| 0:55 | Reveal the **Gemini analysis** breadcrumb | “This is an ordered action plan, not only a summary.” |
 | 1:20 | Open **Why?** evidence | “Each critical claim points back to the source, and uncertainty stays visible.” |
-| 1:45 | If implemented, review Calendar event | “The user confirms the time and timezone before anything is written.” |
-| 2:10 | If implemented, create event and show history | “Google integrations turn understanding into a persistent action.” |
+| 1:40 | Complete an action, then refresh | “The plan and checklist progress survive a refresh inside this browser session.” |
+| 1:55 | Review the deadline and open Google Calendar | “Nothing is written automatically. The user reviews the title and time before opening a pre-filled event.” |
+| 2:20 | Show the public Cloud Run URL | “Cloud Build deploys the same tested container with the Gemini key isolated in Secret Manager.” |
 | 2:30 | Close | “Doc2Do helps people move from confusing information to completed opportunities.” |
 
-Do not pretend roadmap features are live. If Firebase or Calendar is not ready, spend the saved time showing evidence quality, uncertainty handling, and the public Cloud Run deployment.
+If the live model is temporarily unavailable, the one-click path falls back to a result labeled **Sample analysis**. Do not present that fallback as a live Gemini call; retry the live path before recording.
 
 ## Demo resilience
 
 - Keep the synthetic sample and expected JSON fixture in the repository.
 - Run one successful live Gemini analysis shortly before recording or judging.
-- Keep clearly labeled deterministic demo mode available for local development.
+- Keep the clearly labeled deterministic fallback available for local development and model outages.
 - Warm the service with a health request before presenting; do not keep a minimum instance running afterward.
 - Prepare a second supported file and one unsupported file to demonstrate success and recoverable failure.
 - Record at readable zoom and keep network-dependent steps under the 60-second Cloud Run timeout.
@@ -56,27 +57,27 @@ Do not pretend roadmap features are live. If Firebase or Calendar is not ready, 
 
 ### Functional
 
-- [ ] Guest can analyze the bundled sample.
+- [x] Guest can analyze the bundled sample through the public API.
 - [ ] PDF, JPEG, PNG, WebP, and text inputs either produce a valid result or a specific error.
-- [ ] Plan shows applicability, deadlines, actions, requirements, warnings, and evidence.
-- [ ] Unknown date/time/timezone values remain unknown or require confirmation.
-- [ ] No invented source link appears.
+- [x] Plan shows applicability, deadlines, actions, requirements, warnings, and evidence.
+- [x] Unknown date/time/timezone values remain unknown or require confirmation.
+- [x] Model output is schema-validated and non-public or credential-bearing links are removed.
 
 ### Experience and reliability
 
 - [ ] Main flow works at 360 px and 1440 px with keyboard-visible focus.
 - [ ] Errors preserve context and offer a next step.
 - [ ] Three consecutive end-to-end sample runs pass.
-- [ ] `/api/health` returns `200` on the public URL.
+- [x] `/api/health` returns `200` on the public URL.
 - [ ] Root and client-side route refresh work in a signed-out browser.
 
 ### Privacy and operations
 
 - [ ] No credentials or personal data exist in Git, browser assets, logs, fixtures, or screenshots.
-- [ ] Cloud Run uses minimum `0`, maximum `2`, and request-based billing.
+- [x] Cloud Run uses minimum `0`, service/revision maximum `2`, and request-based billing.
 - [ ] Billing alerts and Gemini quotas are configured.
-- [ ] Privacy notice is visible near upload.
-- [ ] Logs contain no uploaded or extracted document text.
+- [x] Privacy notice is visible near upload and names the Gemini Free Tier boundary.
+- [x] Application logging excludes uploaded bytes, context, model output, and secrets.
 
 ## Competition submission package
 
@@ -89,7 +90,7 @@ Do not pretend roadmap features are live. If Firebase or Calendar is not ready, 
 
 Suggested pitch:
 
-> Doc2Do uses Gemini to turn confusing real-world documents into source-backed action plans, then helps users complete the next step through Firebase and Google Calendar.
+> Doc2Do uses Gemini to turn confusing real-world documents into source-backed action plans, then carries reviewed deadlines into Google Calendar from a public Cloud Run app.
 
 Suggested close:
 

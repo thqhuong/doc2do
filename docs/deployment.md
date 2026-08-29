@@ -31,7 +31,7 @@ Firebase and Calendar APIs are not required for the first transient MVP. Enable 
 ## 2. Create the image repository
 
 ```bash
-gcloud artifacts repositories create doc2do \
+gcloud artifacts repositories create cloud-run-source-deploy \
   --repository-format=docker \
   --location=asia-southeast1 \
   --description="Doc2Do Cloud Run images"
@@ -46,10 +46,10 @@ gcloud iam service-accounts create doc2do-runtime \
   --display-name="Doc2Do Cloud Run runtime"
 ```
 
-Create a Secret Manager secret named `GEMINI_API_KEY` in the Google Cloud console, add the Gemini key as its latest version, then grant only this runtime identity access:
+Create a Secret Manager secret named `doc2do-gemini-api-key` in the Google Cloud console, add the Gemini key as its latest version, then grant only this runtime identity access:
 
 ```bash
-gcloud secrets add-iam-policy-binding GEMINI_API_KEY \
+gcloud secrets add-iam-policy-binding doc2do-gemini-api-key \
   --member="serviceAccount:doc2do-runtime@doc2do-ai-riser-2026.iam.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor"
 ```
@@ -64,7 +64,13 @@ Find the build identity:
 gcloud builds get-default-service-account
 ```
 
-Grant that identity the minimum roles needed for this pipeline: Cloud Run Admin, Artifact Registry Writer, and Service Account User on `doc2do-runtime`. Prefer resource-level grants where your organization supports them. A project owner can configure these grants in **IAM & Admin** without copying credentials locally.
+The checked-in pipeline has been verified with these scoped grants:
+
+- `roles/run.builder`, `roles/run.admin`, and `roles/logging.logWriter` on the project for the build identity;
+- `roles/iam.serviceAccountUser` on `doc2do-runtime` only;
+- `roles/secretmanager.secretAccessor` on `doc2do-gemini-api-key` for the runtime identity only.
+
+The build identity does not need access to the Gemini key. Prefer resource-level grants where your organization supports them.
 
 ## 5. Build and deploy
 
@@ -78,7 +84,7 @@ gcloud builds submit --config cloudbuild.yaml .
 
 - region `asia-southeast1`;
 - request-based billing (`--cpu-throttling`);
-- minimum instances `0` and maximum instances `2`;
+- minimum instances `0`, service maximum `2`, and per-revision maximum `2`;
 - 1 vCPU and 512 MiB memory;
 - concurrency `20` and timeout `60s`;
 - public unauthenticated access to the web app;
@@ -103,6 +109,8 @@ Then verify:
 3. Run the bundled sample and open at least one source-evidence item.
 4. Refresh a client-side route and confirm the SPA still loads.
 5. Inspect Cloud Run logs and confirm no document text or credentials appear.
+6. Send a cross-site test request and confirm the analysis endpoint returns `403 CROSS_SITE_REQUEST_BLOCKED`.
+7. Confirm the deployed container image tag matches the successful Cloud Build ID.
 
 ## Cost controls
 
@@ -141,7 +149,7 @@ gcloud run services update-traffic doc2do \
 | Build fails at `npm ci` | Commit the lockfile and ensure workspace packages match it |
 | Container never becomes ready | API must listen on `0.0.0.0` and `process.env.PORT` |
 | Root works but refresh gives 404 | API static handler must fall back to `apps/web/dist/index.html` for non-API routes |
-| Secret access denied | Confirm the Cloud Run runtime identity, secret name, version, and accessor binding |
+| Secret access denied | Confirm the runtime identity can access `doc2do-gemini-api-key:latest` |
 | Deploy step denied | Confirm the Cloud Build identity has Run Admin and may act as `doc2do-runtime` |
 | Gemini returns quota errors | Lower traffic, check project/model quotas, or temporarily use clearly labeled demo mode |
 

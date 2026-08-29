@@ -6,7 +6,7 @@ Doc2Do optimizes for one memorable proof: Gemini can turn a real document into a
 
 ```text
 ┌──────────────────────── browser ────────────────────────┐
-│ upload/context -> processing -> plan -> evidence drawer │
+│ upload/context -> plan -> evidence -> checklist/calendar │
 └──────────────────────────┬──────────────────────────────┘
                            │ same-origin HTTPS
 ┌──────────────────────────▼──────────────────────────────┐
@@ -15,14 +15,17 @@ Doc2Do optimizes for one memorable proof: Gemini can turn a real document into a
 │ React static build         Node API                    │
 │ apps/web/dist       <----> apps/api/dist/server.js     │
 │                              │                         │
-│                  MIME/size checks + Zod validation     │
+│     origin/rate/MIME checks + strict Zod validation    │
 └──────────────────────────────┼──────────────────────────┘
                                │ server-held credential
                          ┌─────▼─────┐
                          │ Gemini API│
                          └───────────┘
 
-Later: Firebase Auth/Firestore and reviewed Calendar events
+Browser review -> pre-filled Google Calendar event (no automatic write)
+
+GitHub CI -> Cloud Build -> Artifact Registry -> Cloud Run
+Secret Manager -------------------------------> runtime identity
 ```
 
 The API owns every secret and every external write. The browser receives only validated JSON and never calls Gemini directly.
@@ -30,11 +33,13 @@ The API owns every secret and every external write. The browser receives only va
 ## Request flow
 
 1. The browser sends one supported document and optional user context as multipart form data.
-2. The API rejects unsupported MIME types and oversized requests before calling a model.
+2. The API rejects cross-site browser submissions, unsupported MIME types, and oversized requests before calling a model.
 3. In demo mode, the API returns a deterministic synthetic fixture. In Gemini mode, it sends the document, context, and JSON schema to Gemini.
-4. The API parses and validates the response with the shared Zod contract.
-5. Cross-reference validation rejects unknown source, deadline, or action IDs.
-6. The UI renders the plan as data. It does not render model-produced HTML.
+4. Transient `429` and `5xx` model failures receive a capped exponential retry; invalid structured output receives one repair attempt.
+5. The API parses and validates the response with the shared Zod contract.
+6. Cross-reference validation rejects unknown source, deadline, or action IDs.
+7. The UI renders the plan as data. It does not render model-produced HTML.
+8. The browser keeps the validated result and checklist state in `sessionStorage` for the current tab only.
 
 ## Workspace layout
 
@@ -43,7 +48,7 @@ The API owns every secret and every external write. The browser receives only va
 | `apps/web` | React upload, progress, result, evidence, and responsive UI |
 | `apps/api` | HTTP endpoints, upload controls, Gemini adapter, validation, and static SPA serving |
 | `packages/contracts` | Zod schemas and shared TypeScript types |
-| `firebase` | Future Firestore rules, indexes, and integration notes |
+| `firebase` | Inactive future Firestore rules, indexes, and integration notes |
 | `docs` | Build, API, security, roadmap, and competition guidance |
 
 ## Runtime configuration
@@ -73,7 +78,11 @@ Critical actions and deadlines link to short source excerpts. Missing evidence b
 
 ### Transient uploads
 
-The core MVP processes bytes in memory and does not retain originals. Users cannot reopen raw documents until storage is deliberately added, but the product avoids collecting sensitive student and administrative files before retention controls exist.
+The core MVP processes bytes in memory and does not retain originals. The validated action plan is stored only in the current tab's `sessionStorage` so a refresh does not erase progress. Closing the tab clears that browser-session copy.
+
+### User-controlled Calendar handoff
+
+Doc2Do turns a reviewed deadline into a URL for Google Calendar's event editor. The title and time remain editable, and Doc2Do does not receive Calendar credentials or create an event automatically. An `.ics` download remains available for other calendar products.
 
 ### Deterministic demo mode
 
@@ -87,6 +96,8 @@ The bundled scenario remains usable during API outages and local development. Th
 - Unknown dates, times, and timezones stay unknown or partial.
 - URLs not present in the source must not become trusted application links.
 - Invalid output returns a recoverable API error rather than unvalidated content.
+- Gemini transport retries are capped at three attempts and only cover `429` and `500`-`504` responses.
+- Browser-origin analysis is same-origin by default; configured development origins are explicit exceptions.
 
 ## Recommended development connectors
 

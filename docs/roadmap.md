@@ -1,8 +1,8 @@
-# Firebase and Google Calendar roadmap
+# Persistence and Calendar API roadmap
 
 The core MVP proves document-to-action conversion first. Add identity, persistence, and external writes only after three consecutive sample analyses pass locally and on Cloud Run.
 
-## Phase 0: core competition loop
+## Phase 0: core competition loop — delivered
 
 Exit conditions:
 
@@ -11,6 +11,8 @@ Exit conditions:
 - Every critical sample fact opens a matching evidence excerpt.
 - Invalid files, invalid model output, and upstream failures have recoverable UI states.
 - Public Cloud Run URL passes `/api/health` and the complete sample path.
+- Reviewed deadlines open as pre-filled Google Calendar events, with `.ics` fallback.
+- The current tab restores the validated result and checklist progress after refresh.
 
 ## Phase 1: Firebase Auth and Firestore
 
@@ -38,9 +40,9 @@ Use `firebase/firestore.rules` and `firebase/firestore.indexes.json` as the init
 6. Run Firestore rules tests for cross-user read/write attempts and child collections.
 7. Add retention and account-deletion behavior before storing original documents.
 
-## Phase 2: reviewed Google Calendar export
+## Phase 2: authenticated Google Calendar API write — optional future work
 
-The Calendar integration turns a confirmed deadline into an event. It must never create events automatically from raw model output.
+The MVP already opens a reviewed deadline in Google Calendar without requesting account access. Add direct Calendar API writes only if post-competition persistence justifies the OAuth and idempotency surface. It must never create events automatically from raw model output.
 
 ### Flow
 
