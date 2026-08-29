@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22.12.0-slim AS build
+FROM node:26.8.1-slim AS build
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:22.12.0-slim AS runtime
+FROM node:26.8.1-slim AS runtime
 
 ENV NODE_ENV=production \
     PORT=8080
