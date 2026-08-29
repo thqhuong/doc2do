@@ -4,7 +4,7 @@ import { createApp } from "../apps/api/dist/app.js";
 const app = createApp({
   nodeEnv: "production",
   port: 0,
-  geminiModel: "gemini-3.7-flash",
+  geminiModel: "gemini-3.6-flash",
   demoMode: true,
   corsOrigins: [],
 });

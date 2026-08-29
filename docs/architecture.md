@@ -54,7 +54,7 @@ The API owns every secret and every external write. The browser receives only va
 | `NODE_ENV` | No | `development` locally | Enables production behavior when set to `production` |
 | `DOC2DO_DEMO_MODE` | No | `true` in `.env.example` | Uses the deterministic fixture instead of Gemini |
 | `GEMINI_API_KEY` | Gemini mode only | none | Server-only Gemini credential |
-| `GEMINI_MODEL` | No | `gemini-3.7-flash` | Stable multimodal model selected by the API adapter |
+| `GEMINI_MODEL` | No | `gemini-3.6-flash` | Stable multimodal model selected by the API adapter |
 | `CORS_ORIGIN` | No | `http://localhost:5173` in development; disabled in production | Comma-separated development origins; production uses the same origin |
 
 ## Design decisions and trade-offs

@@ -2,7 +2,7 @@ substitutions:
   _REGION: asia-southeast1
   _REPOSITORY: doc2do
   _SERVICE: doc2do
-  _GEMINI_MODEL: gemini-3.7-flash
+  _GEMINI_MODEL: gemini-3.6-flash
 
 steps:
   - id: build

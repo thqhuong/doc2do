@@ -9,7 +9,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().min(1).max(65_535).default(8080),
   GEMINI_API_KEY: z.string().trim().min(1).optional(),
-  GEMINI_MODEL: z.string().trim().min(1).default("gemini-3.7-flash"),
+  GEMINI_MODEL: z.string().trim().min(1).default("gemini-3.6-flash"),
   DOC2DO_DEMO_MODE: booleanString,
   CORS_ORIGIN: z.string().trim().optional(),
 });
