@@ -4,6 +4,10 @@
 
 Doc2Do converts a PDF, image, or text notice into an ordered action plan: what the document is, whether it may apply to the user, what to do next, which deadlines matter, and which source excerpt supports each conclusion. It is an AI Riser Vietnam 2026 MVP built with Gemini and deployed as one public Cloud Run service.
 
+**Live demo:** https://doc2do-173521763192.asia-southeast1.run.app
+
+The public deployment currently uses clearly labeled deterministic demo mode. The same validated API path switches to Gemini when a server-side `GEMINI_API_KEY` is configured and `DOC2DO_DEMO_MODE=false`.
+
 ## MVP capabilities
 
 - Analyze the bundled sample without signing in or configuring Gemini.
