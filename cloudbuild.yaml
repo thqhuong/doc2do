@@ -1,0 +1,51 @@
+substitutions:
+  _REGION: asia-southeast1
+  _REPOSITORY: doc2do
+  _SERVICE: doc2do
+  _GEMINI_MODEL: gemini-3.7-flash
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --tag
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --service-account=doc2do-runtime@$PROJECT_ID.iam.gserviceaccount.com
+      - --port=8080
+      - --cpu=1
+      - --memory=512Mi
+      - --min=0
+      - --max=2
+      - --concurrency=20
+      - --timeout=60s
+      - --cpu-throttling
+      - --set-env-vars=NODE_ENV=production,DOC2DO_DEMO_MODE=false,GEMINI_MODEL=${_GEMINI_MODEL}
+      - --set-secrets=GEMINI_API_KEY=GEMINI_API_KEY:latest
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1200s

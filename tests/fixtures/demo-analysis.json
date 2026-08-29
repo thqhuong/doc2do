@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "document": {
+    "title": "Thông báo học bổng Future Builders 2026",
+    "category": "scholarship",
+    "language": "vi",
+    "issuer": "Quỹ Future Builders",
+    "source_date": "2026-08-15",
+    "summary": "Học bổng hỗ trợ sinh viên năm hai và năm ba thực hiện dự án công nghệ vì cộng đồng.",
+    "audience": ["Sinh viên năm hai hoặc năm ba", "Ứng viên có dự án công nghệ vì cộng đồng"]
+  },
+  "applicability": {
+    "status": "unclear",
+    "reasons": ["Thông báo yêu cầu ứng viên là sinh viên năm hai hoặc năm ba."],
+    "missing_facts": ["Năm học hiện tại của người dùng", "Điểm trung bình của người dùng"],
+    "questions_for_user": ["Bạn đang là sinh viên năm mấy?", "Điểm trung bình hiện tại của bạn là bao nhiêu?"]
+  },
+  "deadlines": [
+    {
+      "id": "deadline-1",
+      "label": "Hạn nộp hồ sơ",
+      "date_time_iso": "2026-09-30T23:59:00+07:00",
+      "timezone": "Asia/Ho_Chi_Minh",
+      "precision": "exact",
+      "is_inferred": false,
+      "needs_confirmation": false,
+      "source_refs": ["src-1"]
+    }
+  ],
+  "actions": [
+    {
+      "id": "action-1",
+      "title": "Kiểm tra điều kiện ứng tuyển",
+      "description": "Xác nhận năm học và điểm trung bình của bạn đáp ứng điều kiện trong thông báo.",
+      "priority": "urgent",
+      "deadline_id": "deadline-1",
+      "requirements": ["Sinh viên năm hai hoặc năm ba", "Điểm trung bình từ 7,5/10"],
+      "links": [],
+      "source_refs": ["src-2"],
+      "evidence_state": "needs_confirmation",
+      "confidence": "high"
+    },
+    {
+      "id": "action-2",
+      "title": "Chuẩn bị hồ sơ",
+      "description": "Chuẩn bị bảng điểm, CV một trang và bản mô tả dự án.",
+      "priority": "high",
+      "deadline_id": "deadline-1",
+      "requirements": ["Bảng điểm", "CV một trang", "Mô tả dự án tối đa 1.000 từ"],
+      "links": [],
+      "source_refs": ["src-3"],
+      "evidence_state": "source_backed",
+      "confidence": "high"
+    }
+  ],
+  "source_refs": [
+    {
+      "id": "src-1",
+      "location_label": "Trang 1, mục Thời hạn",
+      "snippet": "Hạn nộp hồ sơ: 23:59 ngày 30/09/2026 (giờ Việt Nam)."
+    },
+    {
+      "id": "src-2",
+      "location_label": "Trang 1, mục Điều kiện",
+      "snippet": "Ứng viên là sinh viên năm hai hoặc năm ba, có điểm trung bình từ 7,5/10."
+    },
+    {
+      "id": "src-3",
+      "location_label": "Trang 2, mục Hồ sơ",
+      "snippet": "Hồ sơ gồm bảng điểm, CV một trang và mô tả dự án không quá 1.000 từ."
+    }
+  ],
+  "warnings": [
+    {
+      "type": "missing",
+      "message": "Chưa có thông tin cá nhân để xác nhận điều kiện ứng tuyển.",
+      "source_refs": ["src-2"]
+    }
+  ],
+  "next_best_action_id": "action-1",
+  "disclaimer": "Hãy đối chiếu ngày, điều kiện và hồ sơ với tài liệu gốc trước khi nộp."
+}

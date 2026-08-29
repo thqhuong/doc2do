@@ -1,0 +1,26 @@
+{
+  "name": "doc2do",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Turn confusing documents into source-backed action plans with Gemini.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run build -w @doc2do/contracts && concurrently -n api,web -c blue,green \"npm run dev -w @doc2do/api\" \"npm run dev -w @doc2do/web\"",
+    "build": "npm run build -w @doc2do/contracts && npm run build -w @doc2do/web && npm run build -w @doc2do/api",
+    "start": "npm run start -w @doc2do/api",
+    "test": "npm run build -w @doc2do/contracts && npm run test -w @doc2do/api && npm run test -w @doc2do/web",
+    "smoke": "npm run build && node scripts/smoke.mjs",
+    "typecheck": "npm run typecheck -w @doc2do/contracts && npm run typecheck -w @doc2do/web && npm run typecheck -w @doc2do/api",
+    "lint": "npm run lint -w @doc2do/web && npm run lint -w @doc2do/api"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3"
+  }
+}

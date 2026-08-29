@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.vite/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+.firebase/
+.idea/
+.vscode/
+service-account*.json
+*-credentials.json
