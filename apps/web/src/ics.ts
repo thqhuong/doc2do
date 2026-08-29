@@ -18,6 +18,19 @@ function formatUtc(date: Date): string {
   return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 }
 
+export function buildGoogleCalendarUrl(event: CalendarEventDraft): string {
+  const start = new Date(event.start);
+  if (Number.isNaN(start.getTime())) throw new Error("Calendar event needs a valid start time.");
+  const end = new Date(start.getTime() + event.durationMinutes * 60_000);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: event.title,
+    dates: `${formatUtc(start)}/${formatUtc(end)}`,
+    details: event.description,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 export function createIcs(event: CalendarEventDraft): string {
   const start = new Date(event.start);
   const end = new Date(start.getTime() + event.durationMinutes * 60_000);

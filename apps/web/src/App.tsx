@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type DragEvent, type F
 import type { ActionItem, AnalysisResponse, Deadline, Doc2DoResult, SourceRef } from "@doc2do/contracts";
 import { createAnalysis, type AnalysisInput } from "./api";
 import { DEMO_CONTEXT, demoAnalysis } from "./demo-data";
-import { downloadIcs } from "./ics";
+import { buildGoogleCalendarUrl, downloadIcs, type CalendarEventDraft } from "./ics";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const PLAN_SESSION_KEY = "doc2do.current-plan.v1";
@@ -714,16 +714,19 @@ function CalendarModal({ result, onClose }: { result: Doc2DoResult; onClose: () 
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const eventDraft: CalendarEventDraft = {
+    title,
+    start,
+    durationMinutes: 30,
+    reminderMinutes: reminder,
+    description: `Deadline captured from ${result.document.title}. Review the original source before acting.`,
+  };
+  const googleCalendarUrl = start ? buildGoogleCalendarUrl(eventDraft) : null;
+
   function submit(event: FormEvent) {
     event.preventDefault();
     if (!start) return;
-    downloadIcs({
-      title,
-      start,
-      durationMinutes: 30,
-      reminderMinutes: reminder,
-      description: `Deadline captured from ${result.document.title}. Review the original source before acting.`,
-    });
+    downloadIcs(eventDraft);
     setDownloaded(true);
   }
 
@@ -731,13 +734,23 @@ function CalendarModal({ result, onClose }: { result: Doc2DoResult; onClose: () 
     <div className="modal-layer centered" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className="calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-title">
         <div className="drawer-header"><div><p className="eyebrow">Review before adding</p><h2 id="calendar-title">Calendar event</h2></div><button className="close-button" onClick={onClose} aria-label="Close calendar review"><Icon name="x" /></button></div>
-        <div className="consent-note"><Icon name="calendar" /><p>Nothing is added automatically. Review the details, then download a calendar file that works with Google Calendar, Apple Calendar, and Outlook.</p></div>
+        <div className="consent-note"><Icon name="calendar" /><p>Nothing is added automatically. Review the details, then open a pre-filled Google Calendar event or download a calendar file.</p></div>
         <form onSubmit={submit} className="calendar-form">
           <label>Event title<input value={title} onChange={(event) => setTitle(event.target.value)} required /></label>
           <label>Date and time<input type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} required /></label>
           <div className="timezone-warning"><Icon name="warning" /><span><strong>Timezone needs confirmation</strong>The source did not name a timezone. Your calendar will use the timezone configured on this device.</span></div>
           <label>Reminder<select value={reminder} onChange={(event) => setReminder(Number(event.target.value))}><option value={60}>1 hour before</option><option value={1440}>1 day before</option><option value={4320}>3 days before</option><option value={10080}>1 week before</option></select></label>
-          <button className="primary-button full-width" type="submit"><Icon name={downloaded ? "check" : "calendar"} />{downloaded ? "Calendar file downloaded" : "Download calendar file"}</button>
+          <div className="calendar-actions">
+            <a
+              className={`primary-button full-width ${googleCalendarUrl ? "" : "is-disabled"}`}
+              href={googleCalendarUrl ?? undefined}
+              target="_blank"
+              rel="noreferrer"
+              aria-disabled={!googleCalendarUrl}
+              onClick={(event) => { if (!googleCalendarUrl) event.preventDefault(); }}
+            ><Icon name="calendar" /> Open in Google Calendar</a>
+            <button className="secondary-button full-width" type="submit"><Icon name={downloaded ? "check" : "calendar"} />{downloaded ? "Calendar file downloaded" : "Download calendar file (.ics)"}</button>
+          </div>
           <small className="calendar-footnote">You stay in control. Doc2Do will never create an event without your confirmation.</small>
         </form>
       </section>
