@@ -85,6 +85,47 @@ function parseJson(text: string): unknown {
   return JSON.parse(trimmed);
 }
 
+interface RetryOptions {
+  maxAttempts?: number;
+  baseDelayMs?: number;
+  sleep?: (delayMs: number) => Promise<void>;
+}
+
+function errorStatus(error: unknown): number | null {
+  if (!error || typeof error !== "object") return null;
+  const candidate = error as { status?: unknown; code?: unknown };
+  for (const value of [candidate.status, candidate.code]) {
+    if (typeof value === "number" && Number.isInteger(value)) return value;
+    if (typeof value === "string") {
+      const match = value.match(/\b(\d{3})\b/);
+      if (match) return Number(match[1]);
+    }
+  }
+  return null;
+}
+
+export async function withTransientGeminiRetry<T>(
+  operation: () => Promise<T>,
+  options: RetryOptions = {},
+): Promise<T> {
+  const maxAttempts = options.maxAttempts ?? 3;
+  const baseDelayMs = options.baseDelayMs ?? 600;
+  const sleep = options.sleep ?? ((delayMs: number) => new Promise<void>((resolve) => setTimeout(resolve, delayMs)));
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      const status = errorStatus(error);
+      const retryable = status === 429 || (status !== null && status >= 500 && status <= 504);
+      if (!retryable || attempt === maxAttempts) throw error;
+      await sleep(baseDelayMs * 2 ** (attempt - 1));
+    }
+  }
+
+  throw new Error("Gemini retry loop ended unexpectedly.");
+}
+
 export async function analyzeWithGemini(
   input: DocumentInput,
   options: { apiKey: string; model: string },
@@ -107,16 +148,16 @@ export async function analyzeWithGemini(
     const instruction = attempt === 0
       ? userContext
       : `${repairPrompt}\nValidation failures: ${validationIssue}\nPrevious invalid JSON:\n${previousOutput.slice(0, 60_000)}\n\n${userContext}`;
-    const response = await ai.models.generateContent({
-      model: options.model,
-      contents: [{ role: "user", parts: [{ text: instruction }, documentPart] }],
-      config: {
-        systemInstruction: systemPrompt,
-        temperature: 0.1,
-        responseMimeType: "application/json",
-        responseJsonSchema,
-      },
-    });
+    const response = await withTransientGeminiRetry(() => ai.models.generateContent({
+        model: options.model,
+        contents: [{ role: "user", parts: [{ text: instruction }, documentPart] }],
+        config: {
+          systemInstruction: systemPrompt,
+          temperature: 0.1,
+          responseMimeType: "application/json",
+          responseJsonSchema,
+        },
+      }));
     previousOutput = response.text ?? "";
     try {
       return validateAndSanitizeResult(parseJson(previousOutput));
