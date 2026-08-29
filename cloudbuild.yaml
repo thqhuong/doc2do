@@ -36,6 +36,7 @@ steps:
       - --memory=512Mi
       - --min=0
       - --max=2
+      - --max-instances=2
       - --concurrency=20
       - --timeout=60s
       - --cpu-throttling
