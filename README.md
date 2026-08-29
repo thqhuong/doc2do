@@ -87,7 +87,7 @@ The shared Zod contracts in `packages/contracts` are the trust boundary between 
 
 ## Deployment defaults
 
-The supplied container and Cloud Build configuration target `asia-southeast1` with request-based billing, minimum instances `0`, service and revision maximums of `2`, 1 vCPU, 512 MiB memory, and a 60-second timeout. Builder images and GitHub actions are pinned to immutable revisions. Follow [the deployment guide](docs/deployment.md) before running a build.
+The supplied container and Cloud Build configuration target `asia-southeast1` with request-based billing, minimum instances `0`, service and revision maximums of `2`, 1 vCPU, 512 MiB memory, and a bounded 180-second timeout for larger documents. Builder images and GitHub actions are pinned to immutable revisions. Follow [the deployment guide](docs/deployment.md) before running a build.
 
 ## License
 
