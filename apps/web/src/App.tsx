@@ -5,6 +5,7 @@ import { DEMO_CONTEXT, demoAnalysis } from "./demo-data";
 import { downloadIcs } from "./ics";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const PLAN_SESSION_KEY = "doc2do.current-plan.v1";
 const ACCEPTED_TYPES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp", "text/plain"]);
 const PROCESS_STAGES = [
   { label: "Reading your document", detail: "Finding headings, dates, links, and requirements" },
@@ -35,6 +36,11 @@ interface ActionState {
   complete: boolean;
 }
 
+interface SavedPlan {
+  analysis: AnalysisResponse;
+  actionStates: Record<string, ActionState>;
+}
+
 interface EvidenceSelection {
   title: string;
   refs: string[];
@@ -51,8 +57,34 @@ export function validateFile(file: File): string | null {
   return null;
 }
 
+function loadSavedPlan(): SavedPlan | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = window.sessionStorage.getItem(PLAN_SESSION_KEY);
+    if (!saved) return null;
+    const parsed = JSON.parse(saved) as Partial<SavedPlan>;
+    const actions = parsed.analysis?.result?.actions;
+    if (parsed.analysis?.status !== "complete" || !Array.isArray(actions)) return null;
+
+    return {
+      analysis: parsed.analysis,
+      actionStates: Object.fromEntries(actions.map((action) => {
+        const state = parsed.actionStates?.[action.id];
+        return [action.id, {
+          title: typeof state?.title === "string" && state.title.trim() ? state.title : action.title,
+          complete: state?.complete === true,
+        }];
+      })),
+    };
+  } catch {
+    window.sessionStorage.removeItem(PLAN_SESSION_KEY);
+    return null;
+  }
+}
+
 function App() {
-  const [screen, setScreen] = useState<Screen>("input");
+  const [savedPlan] = useState(loadSavedPlan);
+  const [screen, setScreen] = useState<Screen>(savedPlan ? "result" : "input");
   const [inputMode, setInputMode] = useState<InputMode>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [text, setText] = useState("");
@@ -60,8 +92,8 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [stage, setStage] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
-  const [actionStates, setActionStates] = useState<Record<string, ActionState>>({});
+  const [analysis, setAnalysis] = useState<AnalysisResponse | null>(savedPlan?.analysis ?? null);
+  const [actionStates, setActionStates] = useState<Record<string, ActionState>>(savedPlan?.actionStates ?? {});
   const [evidence, setEvidence] = useState<EvidenceSelection | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -70,6 +102,11 @@ function App() {
   const timersRef = useRef<number[]>([]);
 
   useEffect(() => () => clearProcessing(), []);
+
+  useEffect(() => {
+    if (screen !== "result" || !analysis) return;
+    window.sessionStorage.setItem(PLAN_SESSION_KEY, JSON.stringify({ analysis, actionStates } satisfies SavedPlan));
+  }, [actionStates, analysis, screen]);
 
   const result = analysis?.result ?? null;
   const progress = result
@@ -162,8 +199,10 @@ function App() {
   }
 
   function reset() {
+    window.sessionStorage.removeItem(PLAN_SESSION_KEY);
     setScreen("input");
     setAnalysis(null);
+    setActionStates({});
     setFile(null);
     setText("");
     setContext("");
