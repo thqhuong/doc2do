@@ -13,7 +13,7 @@
     "start": "npm run start -w @doc2do/api",
     "test": "npm run build -w @doc2do/contracts && npm run test -w @doc2do/api && npm run test -w @doc2do/web",
     "smoke": "npm run build && node scripts/smoke.mjs",
-    "typecheck": "npm run typecheck -w @doc2do/contracts && npm run typecheck -w @doc2do/web && npm run typecheck -w @doc2do/api",
+    "typecheck": "npm run build -w @doc2do/contracts && npm run typecheck -w @doc2do/contracts && npm run typecheck -w @doc2do/web && npm run typecheck -w @doc2do/api",
     "lint": "npm run lint -w @doc2do/web && npm run lint -w @doc2do/api"
   },
   "engines": {
