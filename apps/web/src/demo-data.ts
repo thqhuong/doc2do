@@ -3,6 +3,20 @@ import type { AnalysisResponse } from "@doc2do/contracts";
 export const DEMO_CONTEXT =
   "I am Lan, a third-year computer science student in Vietnam with GPA 3.4. I have not prepared the essay.";
 
+export const DEMO_DOCUMENT_TEXT = `THÔNG BÁO HỌC BỔNG AI FUTURE LEADERS 2026
+
+Đơn vị tổ chức: Vietnam Digital Futures Foundation
+Ngày thông báo: 20/08/2026
+
+Đối tượng: sinh viên năm ba hoặc năm tư đang học ngành công nghệ tại một trường đại học ở Việt Nam, có GPA từ 3.2/4.0 trở lên.
+
+Hồ sơ bắt buộc gồm: CV, bảng điểm, thẻ sinh viên và bài luận động lực không quá 500 từ. Bài luận cần trình bày mục tiêu, kinh nghiệm liên quan và tác động mong đợi của học bổng.
+
+Hạn nộp hồ sơ: 17:00 ngày 12/09/2026. Thông báo không nêu múi giờ.
+Ứng viên vượt qua vòng hồ sơ sẽ được mời phỏng vấn trong khoảng 20-22/09/2026.
+
+Nộp hồ sơ tại: https://example.com/aifl-scholarship`;
+
 export const demoAnalysis: AnalysisResponse = {
   id: "demo-ai-future-leaders-2026",
   status: "complete",

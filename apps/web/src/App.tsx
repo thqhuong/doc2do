@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type DragEvent, type FormEvent, type ReactNode } from "react";
 import type { ActionItem, AnalysisResponse, Deadline, Doc2DoResult, SourceRef } from "@doc2do/contracts";
 import { createAnalysis, type AnalysisInput } from "./api";
-import { DEMO_CONTEXT, demoAnalysis } from "./demo-data";
+import { DEMO_CONTEXT, DEMO_DOCUMENT_TEXT, demoAnalysis } from "./demo-data";
 import { buildGoogleCalendarUrl, downloadIcs, type CalendarEventDraft } from "./ics";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -151,7 +151,13 @@ function App() {
 
     try {
       const minimumDelay = new Promise((resolve) => window.setTimeout(resolve, 2550));
-      const request = input === "demo" ? Promise.resolve(demoAnalysis) : createAnalysis(input, controller.signal);
+      const request = input === "demo"
+        ? createAnalysis({ kind: "text", text: DEMO_DOCUMENT_TEXT, context: DEMO_CONTEXT }, controller.signal)
+          .catch((caught) => {
+            if (caught instanceof DOMException && caught.name === "AbortError") throw caught;
+            return demoAnalysis;
+          })
+        : createAnalysis(input, controller.signal);
       const [response] = await Promise.all([request, minimumDelay]);
       if (controller.signal.aborted) return;
       setAnalysis(response);
