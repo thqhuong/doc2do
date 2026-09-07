@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@doc2do/contracts": "*",
-    "@google/genai": "^2.19.0",
+    "@google/genai": "^2.21.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
